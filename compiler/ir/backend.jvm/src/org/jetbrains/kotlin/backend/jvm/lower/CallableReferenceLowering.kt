@@ -191,7 +191,7 @@ internal class CallableReferenceLowering(val context: JvmBackendContext) : FileL
         private val functionReferenceClass = buildClass {
             setSourceRange(irFunctionReference)
             origin = JvmLoweredDeclarationOrigin.FUNCTION_REFERENCE_IMPL
-            name = Name.special("<function reference to ${callee.fqNameWhenAvailable}")
+            name = Name.special("<function reference to ${callee.fqNameWhenAvailable}>")
         }.apply {
             parent = referenceParent
             superTypes += functionReferenceOrLambda.owner.defaultType
