@@ -531,6 +531,11 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
         return KotlinBuiltIns.getPrimitiveArrayType(declarationDescriptor as ClassDescriptor)
     }
 
+    override fun TypeConstructorMarker.isUnderKotlinPackage(): Boolean {
+        require(this is TypeConstructor, this::errorMessage)
+        return declarationDescriptor?.let(KotlinBuiltIns::isUnderKotlinPackage) == true
+    }
+
     override fun TypeConstructorMarker.getClassFqNameUnsafe(): FqNameUnsafe {
         require(this is TypeConstructor, this::errorMessage)
         return (declarationDescriptor as ClassDescriptor).fqNameUnsafe

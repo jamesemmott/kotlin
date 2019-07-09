@@ -225,12 +225,14 @@ fun <T : Any> TypeSystemCommonBackendContext.mapBuiltInType(
         return typeFactory.createFromString("[" + JvmPrimitiveType.get(arrayElementType).desc)
     }
 
-    val classId = constructor.getClassFqNameUnsafe()?.let(JavaToKotlinClassMap::mapKotlinToJava)
-    if (classId != null) {
-        if (!mode.kotlinCollectionsToJavaCollections && JavaToKotlinClassMap.mutabilityMappings.any { it.javaClass == classId })
-            return null
+    if (constructor.isUnderKotlinPackage()) {
+        val classId = constructor.getClassFqNameUnsafe()?.let(JavaToKotlinClassMap::mapKotlinToJava)
+        if (classId != null) {
+            if (!mode.kotlinCollectionsToJavaCollections && JavaToKotlinClassMap.mutabilityMappings.any { it.javaClass == classId })
+                return null
 
-        return typeFactory.createObjectType(JvmClassName.byClassId(classId).internalName)
+            return typeFactory.createObjectType(JvmClassName.byClassId(classId).internalName)
+        }
     }
 
     return null

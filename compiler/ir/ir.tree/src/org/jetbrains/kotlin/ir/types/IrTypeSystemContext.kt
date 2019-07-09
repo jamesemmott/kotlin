@@ -11,6 +11,7 @@ import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.descriptors.Visibilities
+import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.descriptors.IrBuiltIns
 import org.jetbrains.kotlin.ir.expressions.IrConst
@@ -301,6 +302,17 @@ interface IrTypeSystemContext : TypeSystemContext, TypeSystemCommonSuperTypesCon
     override fun TypeConstructorMarker.getPrimitiveArrayType(): PrimitiveType? {
         // TODO: get rid of descriptor
         return KotlinBuiltIns.getPrimitiveArrayType((this as IrClassifierSymbol).descriptor as ClassDescriptor)
+    }
+
+    override fun TypeConstructorMarker.isUnderKotlinPackage(): Boolean {
+        var declaration: IrDeclaration = (this as? IrClassifierSymbol)?.owner as? IrClass ?: return false
+        while (true) {
+            val parent = declaration.parent
+            if (parent is IrPackageFragment) {
+                return parent.fqName.startsWith(KotlinBuiltIns.BUILT_INS_PACKAGE_NAME)
+            }
+            declaration = parent as? IrDeclaration ?: return false
+        }
     }
 
     override fun TypeConstructorMarker.getClassFqNameUnsafe(): FqNameUnsafe? =
