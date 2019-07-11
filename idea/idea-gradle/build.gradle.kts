@@ -78,6 +78,13 @@ testsJar()
 projectTest(parallel = true) {
     workingDir = rootDir
     useAndroidSdk()
+
+    doFirst {
+        val testRuntimeSourceSet = javaPluginConvention().sourceSets["test"]
+        testRuntimeSourceSet.runtimeClasspath = testRuntimeSourceSet.runtimeClasspath.filter {
+            !it.path.contains("${project.buildDir}/resources/main")
+        }
+    }
 }
 
 configureFormInstrumentation()
