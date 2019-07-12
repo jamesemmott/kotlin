@@ -1171,8 +1171,7 @@ class ReturnTypeCalculatorWithJump(val session: FirSession, val scopeSession: Sc
 
     private fun cycleErrorType(declaration: FirTypedDeclaration): FirResolvedTypeRef? {
         if (declaration.returnTypeRef is FirComputingImplicitTypeRef) {
-            declaration.transformReturnTypeRef(storeType, FirErrorTypeRefImpl(session, null, "cycle"))
-            return declaration.returnTypeRef as FirResolvedTypeRef
+            return FirErrorTypeRefImpl(session, null, "cycle")
         }
         return null
     }
