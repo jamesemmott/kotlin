@@ -707,7 +707,7 @@ open class FirBodyResolveTransformer(
             )
         }
 
-        qualifiedAccess.transformChildren(ReplaceInArguments, replacements.toMap())
+        qualifiedAccess.transformChildren(MapArguments, replacements.toMap())
 
 
         if (completionMode == KotlinConstraintSystemCompleter.ConstraintSystemCompletionMode.FULL) {
@@ -1153,20 +1153,6 @@ private fun inferenceComponents(session: FirSession, jump: ReturnTypeCalculatorW
 
 class ReturnTypeCalculatorWithJump(val session: FirSession, val scopeSession: ScopeSession) : ReturnTypeCalculator {
 
-
-    val storeType = object : FirTransformer<FirTypeRef>() {
-        override fun <E : FirElement> transformElement(element: E, data: FirTypeRef): CompositeTransformResult<E> {
-            return element.compose()
-        }
-
-        override fun transformImplicitTypeRef(
-            implicitTypeRef: FirImplicitTypeRef,
-            data: FirTypeRef
-        ): CompositeTransformResult<FirTypeRef> {
-            return data.compose()
-        }
-    }
-
     private fun cycleErrorType(declaration: FirTypedDeclaration): FirResolvedTypeRef? {
         if (declaration.returnTypeRef is FirComputingImplicitTypeRef) {
             return FirErrorTypeRefImpl(session, null, "cycle")
@@ -1178,7 +1164,7 @@ class ReturnTypeCalculatorWithJump(val session: FirSession, val scopeSession: Sc
 
         if (declaration is FirValueParameter && declaration.returnTypeRef is FirImplicitTypeRef) {
             // TODO?
-            declaration.transformReturnTypeRef(storeType, FirErrorTypeRefImpl(session, null, "Unsupported: implicit VP type"))
+            declaration.transformReturnTypeRef(TransformImplicitType, FirErrorTypeRefImpl(session, null, "Unsupported: implicit VP type"))
         }
         val returnTypeRef = declaration.returnTypeRef
         if (returnTypeRef is FirResolvedTypeRef) return returnTypeRef
@@ -1203,11 +1189,11 @@ class ReturnTypeCalculatorWithJump(val session: FirSession, val scopeSession: Sc
             "I don't know what todo"
         )
 
-        declaration.transformReturnTypeRef(storeType, FirComputingImplicitTypeRef)
+        declaration.transformReturnTypeRef(TransformImplicitType, FirComputingImplicitTypeRef)
 
         val transformer = FirDesignatedBodyResolveTransformer(
             (listOf(file) + outerClasses.filterNotNull().asReversed() + listOf(declaration)).iterator(),
-            file.session,
+            file.fileSession,
             scopeSession
         )
 
@@ -1284,57 +1270,4 @@ interface ReturnTypeCalculator {
     fun tryCalculateReturnType(declaration: FirTypedDeclaration): FirResolvedTypeRef
 }
 
-private object StoreNameReference : FirTransformer<FirNamedReference>() {
-    override fun <E : FirElement> transformElement(element: E, data: FirNamedReference): CompositeTransformResult<E> {
-        return element.compose()
-    }
 
-    override fun transformNamedReference(
-        namedReference: FirNamedReference,
-        data: FirNamedReference
-    ): CompositeTransformResult<FirNamedReference> {
-        return data.compose()
-    }
-}
-
-internal object StoreType : FirTransformer<FirTypeRef>() {
-    override fun <E : FirElement> transformElement(element: E, data: FirTypeRef): CompositeTransformResult<E> {
-        return element.compose()
-    }
-
-    override fun transformTypeRef(typeRef: FirTypeRef, data: FirTypeRef): CompositeTransformResult<FirTypeRef> {
-        return data.compose()
-    }
-}
-
-internal object StoreExplicitReceiver : FirTransformer<FirExpression>() {
-    override fun <E : FirElement> transformElement(element: E, data: FirExpression): CompositeTransformResult<E> {
-        return element.compose()
-    }
-
-    override fun transformExpression(expression: FirExpression, data: FirExpression): CompositeTransformResult<FirStatement> {
-        return data.compose()
-    }
-
-
-}
-
-private object ReplaceInArguments : FirTransformer<Map<FirElement, FirElement>>() {
-    override fun <E : FirElement> transformElement(element: E, data: Map<FirElement, FirElement>): CompositeTransformResult<E> {
-        return ((data[element] ?: element) as E).compose()
-    }
-
-    override fun transformFunctionCall(
-        functionCall: FirFunctionCall,
-        data: Map<FirElement, FirElement>
-    ): CompositeTransformResult<FirStatement> {
-        return (functionCall.transformChildren(this, data) as FirStatement).compose()
-    }
-
-    override fun transformWrappedArgumentExpression(
-        wrappedArgumentExpression: FirWrappedArgumentExpression,
-        data: Map<FirElement, FirElement>
-    ): CompositeTransformResult<FirStatement> {
-        return (wrappedArgumentExpression.transformChildren(this, data) as FirStatement).compose()
-    }
-}
