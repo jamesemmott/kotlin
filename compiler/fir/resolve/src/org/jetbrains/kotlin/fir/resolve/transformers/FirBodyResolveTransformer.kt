@@ -738,10 +738,16 @@ open class FirBodyResolveTransformer(
     }
 
     override fun transformFunctionCall(functionCall: FirFunctionCall, data: Any?): CompositeTransformResult<FirStatement> {
-        if (functionCall.calleeReference is FirResolvedCallableReference && functionCall.resultType is FirImplicitTypeRef) {
+        val calleeReference = functionCall.calleeReference
+        if (calleeReference is FirResolvedCallableReference &&
+            calleeReference !is FirNamedReferenceWithCandidate &&
+            functionCall.resultType is FirImplicitTypeRef
+        ) {
             storeTypeFromCallee(functionCall)
         }
-        if (functionCall.calleeReference !is FirSimpleNamedReference) return functionCall.compose()
+        if (calleeReference !is FirSimpleNamedReference && calleeReference !is FirNamedReferenceWithCandidate) {
+            return functionCall.compose()
+        }
         val expectedTypeRef = data as FirTypeRef?
         val completeInference =
             try {
@@ -1052,6 +1058,9 @@ open class FirBodyResolveTransformer(
     override fun transformProperty(property: FirProperty, data: Any?): CompositeTransformResult<FirDeclaration> {
         val returnTypeRef = property.returnTypeRef
         if (returnTypeRef !is FirImplicitTypeRef && implicitTypeOnly) return property.compose()
+        if (implicitTypeOnly) {
+            property.transformReturnTypeRef(TransformImplicitType, FirComputingImplicitTypeRef)
+        }
         return withScopeCleanup(localScopes) {
             localScopes.addIfNotNull(primaryConstructorParametersScope)
             withContainer(property) {
