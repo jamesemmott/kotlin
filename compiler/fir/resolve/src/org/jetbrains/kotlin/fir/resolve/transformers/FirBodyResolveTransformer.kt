@@ -1230,7 +1230,7 @@ class FirImplicitTypeBodyResolveTransformerAdapter : FirTransformer<Nothing?>() 
     }
 
     override fun transformFile(file: FirFile, data: Nothing?): CompositeTransformResult<FirFile> {
-        val transformer = FirBodyResolveTransformer(file.session, implicitTypeOnly = true)
+        val transformer = FirBodyResolveTransformer(file.fileSession, implicitTypeOnly = true)
         return file.transform(transformer, null)
     }
 }
@@ -1243,7 +1243,7 @@ class FirBodyResolveTransformerAdapter : FirTransformer<Nothing?>() {
     }
 
     override fun transformFile(file: FirFile, data: Nothing?): CompositeTransformResult<FirFile> {
-        val transformer = FirBodyResolveTransformer(file.session, implicitTypeOnly = false)
+        val transformer = FirBodyResolveTransformer(file.fileSession, implicitTypeOnly = false)
         return file.transform(transformer, null)
     }
 }
