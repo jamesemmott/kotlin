@@ -15,13 +15,14 @@ include "prepare-deps"
 
 def flags = new LocalBuildProperties(settings as Settings)
 
-if (flags.hasKotlinUltimate) {
-    include ":prepare-deps:native-debug-plugin"
-    include ":prepare-deps:lldb-frontend"
-    project(":prepare-deps:native-debug-plugin").projectDir = file("${flags.propertiesProvider.rootProjectDir}/kotlin-ultimate/buildSrc/prepare-deps/native-debug-plugin")
-    project(":prepare-deps:lldb-frontend").projectDir = file("${flags.propertiesProvider.rootProjectDir}/kotlin-ultimate/buildSrc/prepare-deps/lldb-frontend")
-    logger.info("Including kotlin-ultimate dependencies in buildSrc/settings.gradle")
-}
+// TODO: 192
+//if (flags.includeUltimate) {
+//    include ":prepare-deps:native-debug-plugin"
+//    include ":prepare-deps:lldb-frontend"
+//    project(":prepare-deps:native-debug-plugin").projectDir = file("${flags.propertiesProvider.rootProjectDir}/kotlin-ultimate/buildSrc/prepare-deps/native-debug-plugin")
+//    project(":prepare-deps:lldb-frontend").projectDir = file("${flags.propertiesProvider.rootProjectDir}/kotlin-ultimate/buildSrc/prepare-deps/lldb-frontend")
+//    logger.info("Including kotlin-ultimate dependencies in buildSrc/settings.gradle")
+//}
 
 if (flags.includeCidrPlugins) {
     logger.info("Including CIDR plugins in buildSrc/settings.gradle")
@@ -62,8 +63,10 @@ class LocalBuildPropertiesProvider {
 
 class LocalBuildProperties {
     LocalBuildPropertiesProvider propertiesProvider
-    
+
     boolean includeCidrPlugins
+
+    boolean includeUltimate
 
     boolean hasKotlinUltimate
 
@@ -71,5 +74,6 @@ class LocalBuildProperties {
         propertiesProvider = new LocalBuildPropertiesProvider(settings)
         hasKotlinUltimate = new File(propertiesProvider.rootProjectDir, 'kotlin-ultimate').exists()
         includeCidrPlugins = propertiesProvider.getBoolean('cidrPluginsEnabled') && hasKotlinUltimate
+        includeUltimate = propertiesProvider.getBoolean('intellijUltimateEnabled') && hasKotlinUltimate
     }
 }
